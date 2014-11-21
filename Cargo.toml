@@ -1,0 +1,5 @@
+[package]
+
+name = "evercraft"
+version = "0.0.1"
+authors = ["Jason Duffy <jasonsduffy@gmail.com>"]
