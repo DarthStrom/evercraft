@@ -10,7 +10,8 @@ enum Alignment {
 struct Character {
     name: String,
     alignment: Alignment,
-    armor_class: int
+    armor_class: int,
+    hit_points: int
 }
 
 impl Default for Character {
@@ -18,7 +19,8 @@ impl Default for Character {
         Character {
             name: "".to_string(),
             alignment: Evil,
-            armor_class: 10
+            armor_class: 10,
+            hit_points: 5
         }
     }
 }
@@ -41,7 +43,6 @@ mod tests {
     #[test]
     fn test_character_alignment_good() {
         let gimble = Character {
-            name: "Gimble".to_string(),
             alignment: Good,
             ..Default::default()
         };
@@ -52,7 +53,6 @@ mod tests {
     #[test]
     fn test_character_alignment_neutral() {
         let jozan = Character {
-            name: "Jozan".to_string(),
             alignment: Neutral,
             ..Default::default()
         };
@@ -63,7 +63,6 @@ mod tests {
     #[test]
     fn test_character_alignment_evil() {
         let vadania = Character {
-            name: "Vadania".to_string(),
             alignment: Evil,
             ..Default::default()
         };
@@ -74,11 +73,18 @@ mod tests {
     #[test]
     fn test_character_default_armor_class_is_10() {
         let tordek = Character {
-            name: "Tordek".to_string(),
-            alignment: Neutral,
             ..Default::default()
         };
 
-        assert_eq!(10i, tordek.armor_class);
+        assert_eq!(10, tordek.armor_class);
+    }
+
+    #[test]
+    fn test_character_default_hit_points_are_5() {
+        let regdar = Character {
+            ..Default::default()
+        };
+
+        assert_eq!(5, regdar.hit_points);
     }
 }
