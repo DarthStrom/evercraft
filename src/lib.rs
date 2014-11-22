@@ -25,10 +25,19 @@ impl Default for Character {
     }
 }
 
+fn attack(roll: int, defender: Character) -> Character {
+    Character {
+        name: defender.name,
+        alignment: defender.alignment,
+        armor_class: defender.armor_class,
+        hit_points: defender.hit_points - 1
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::default::Default;
-    use super::{Good, Neutral, Evil, Character};
+    use super::{Good, Neutral, Evil, Character, attack};
 
     #[test]
     fn test_character_has_a_name() {
@@ -86,5 +95,16 @@ mod tests {
         };
 
         assert_eq!(5, regdar.hit_points);
+    }
+
+    #[test]
+    fn test_character_can_attack() {
+        let vadania = Character { ..Default::default() };
+        let tordek = Character { ..Default::default() };
+        let original_hit_points = tordek.hit_points;
+
+        let attacked_tordek = attack(10, tordek);
+
+        assert!(original_hit_points != attacked_tordek.hit_points);
     }
 }
