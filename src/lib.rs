@@ -11,45 +11,46 @@ struct Character {
 }
 
 #[cfg(test)]
-#[test]
-fn test_character_has_a_name() {
-    let krusk = Character {
-        name: "Krusk".to_string(),
-        alignment: Neutral
-    };
+mod tests {
+    use super::{Good, Neutral, Evil, Character};
 
-    assert_eq!("Krusk".to_string(), krusk.name);
-}
+    #[test]
+    fn test_character_has_a_name() {
+        let krusk = Character {
+            name: "Krusk".to_string(),
+            alignment: Neutral
+        };
 
-#[cfg(test)]
-#[test]
-fn test_character_alignment_good() {
-    let gimble = Character {
-        name: "Gimble".to_string(),
-        alignment: Good
-    };
+        assert_eq!("Krusk".to_string(), krusk.name);
+    }
 
-    assert!(Good == gimble.alignment);
-}
+    #[test]
+    fn test_character_alignment_good() {
+        let gimble = Character {
+            name: "Gimble".to_string(),
+            alignment: Good
+        };
 
-#[cfg(test)]
-#[test]
-fn test_character_alignment_neutral() {
-    let jozan = Character {
-        name: "Jozan".to_string(),
-        alignment: Neutral
-    };
+        assert!(Good == gimble.alignment);
+    }
 
-    assert!(Neutral == jozan.alignment);
-}
+    #[test]
+    fn test_character_alignment_neutral() {
+        let jozan = Character {
+            name: "Jozan".to_string(),
+            alignment: Neutral
+        };
 
-#[cfg(test)]
-#[test]
-fn test_character_alignment_evil() {
-    let vadania = Character {
-        name: "Vadania".to_string(),
-        alignment: Evil
-    };
+        assert!(Neutral == jozan.alignment);
+    }
 
-    assert!(Evil == vadania.alignment);
+    #[test]
+    fn test_character_alignment_evil() {
+        let vadania = Character {
+            name: "Vadania".to_string(),
+            alignment: Evil
+        };
+
+        assert!(Evil == vadania.alignment);
+    }
 }
