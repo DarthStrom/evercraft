@@ -7,11 +7,18 @@ enum Alignment {
     Evil
 }
 
+#[deriving(PartialEq)]
+enum Vitality {
+    Alive,
+    Dead
+}
+
 struct Character {
     name: String,
     alignment: Alignment,
     armor_class: int,
-    hit_points: int
+    hit_points: int,
+    vitality: Vitality
 }
 
 impl Default for Character {
@@ -20,7 +27,8 @@ impl Default for Character {
             name: "".to_string(),
             alignment: Evil,
             armor_class: 10,
-            hit_points: 5
+            hit_points: 5,
+            vitality: Alive
         }
     }
 }
@@ -41,14 +49,15 @@ fn attack(roll: int, defender: Character) -> Character {
         name: defender.name,
         alignment: defender.alignment,
         armor_class: defender.armor_class,
-        hit_points: new_hit_points
+        hit_points: new_hit_points,
+        vitality: defender.vitality
     }
 }
 
 #[cfg(test)]
 mod tests {
     use std::default::Default;
-    use super::{Good, Neutral, Evil, Character, attack};
+    use super::{Good, Neutral, Evil, Alive, Dead, Character, attack};
 
     #[test]
     fn test_character_has_a_name() {
@@ -141,5 +150,12 @@ mod tests {
         let crit_multiplier = 2;
         assert_eq!(original_hit_points - (crit_multiplier * normal_hit),
                    attacked_tordek.hit_points);
+    }
+
+    #[test]
+    fn test_character_is_alive() {
+        let tordek = Character { ..Default::default() };
+
+        assert!(Alive == tordek.vitality);
     }
 }
