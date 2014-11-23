@@ -26,11 +26,16 @@ impl Default for Character {
 }
 
 fn attack(roll: int, defender: Character) -> Character {
+    let mut new_hit_points = defender.hit_points;
+    if roll >= defender.armor_class {
+        new_hit_points = new_hit_points - 1;
+    }
+
     Character {
         name: defender.name,
         alignment: defender.alignment,
         armor_class: defender.armor_class,
-        hit_points: defender.hit_points - 1
+        hit_points: new_hit_points
     }
 }
 
@@ -106,5 +111,16 @@ mod tests {
         let attacked_tordek = attack(10, tordek);
 
         assert!(original_hit_points != attacked_tordek.hit_points);
+    }
+
+    #[test]
+    fn test_character_can_miss() {
+        let vadania = Character { ..Default::default() };
+        let tordek = Character { ..Default::default() };
+        let original_hit_points = tordek.hit_points;
+
+        let attacked_tordek = attack(9, tordek);
+
+        assert!(original_hit_points == attacked_tordek.hit_points);
     }
 }
