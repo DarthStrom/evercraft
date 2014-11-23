@@ -46,7 +46,7 @@ fn attack(roll: int, defender: Character) -> Character {
         new_hit_points = new_hit_points - damage;
     }
 
-    if new_hit_points == 0 {
+    if new_hit_points <= 0 {
         new_vitality = Dead;
     }
 
@@ -169,6 +169,15 @@ mod tests {
         let tordek = Character { hit_points: 1, ..Default::default() };
 
         let attacked_tordek = attack(10, tordek);
+
+        assert!(Dead == attacked_tordek.vitality);
+    }
+
+    #[test]
+    fn test_character_dies_when_reduced_below_zero_hit_points() {
+        let tordek = Character { hit_points: 1, ..Default::default() };
+
+        let attacked_tordek = attack(20, tordek);
 
         assert!(Dead == attacked_tordek.vitality);
     }
