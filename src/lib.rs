@@ -45,6 +45,10 @@ impl Default for Character {
     }
 }
 
+fn modifier_for(score: int) -> int {
+    (score / 2) - 5
+}
+
 fn attack(roll: int, defender: Character) -> Character {
     let mut new_hit_points = defender.hit_points;
     let mut damage = 1;
@@ -80,7 +84,8 @@ fn attack(roll: int, defender: Character) -> Character {
 #[cfg(test)]
 mod tests {
     use std::default::Default;
-    use super::{Good, Neutral, Evil, Alive, Dead, Character, attack};
+    use super::{Good, Neutral, Evil, Alive, Dead, Character,
+                modifier_for, attack};
 
     #[test]
     fn test_character_has_a_name() {
@@ -210,5 +215,21 @@ mod tests {
         assert_eq!(10, krusk.wisdom);
         assert_eq!(10, krusk.intelligence);
         assert_eq!(10, krusk.charisma);
+    }
+
+    #[test]
+    fn test_abilities_have_modifiers() {
+        assert_eq!(-5, modifier_for(1));
+        assert_eq!(-4, modifier_for(2));
+        assert_eq!(-4, modifier_for(3));
+        assert_eq!(-1, modifier_for(8));
+        assert_eq!(-1, modifier_for(9));
+        assert_eq!(0, modifier_for(10));
+        assert_eq!(0, modifier_for(11));
+        assert_eq!(1, modifier_for(12));
+        assert_eq!(1, modifier_for(13));
+        assert_eq!(4, modifier_for(18));
+        assert_eq!(4, modifier_for(19));
+        assert_eq!(5, modifier_for(20));
     }
 }
