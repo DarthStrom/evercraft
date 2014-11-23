@@ -36,6 +36,7 @@ impl Default for Character {
 fn attack(roll: int, defender: Character) -> Character {
     let mut new_hit_points = defender.hit_points;
     let mut damage = 1;
+    let mut new_vitality = Alive;
     
     if roll == 20 {
         damage = damage * 2;
@@ -45,12 +46,16 @@ fn attack(roll: int, defender: Character) -> Character {
         new_hit_points = new_hit_points - damage;
     }
 
+    if new_hit_points == 0 {
+        new_vitality = Dead;
+    }
+
     Character {
         name: defender.name,
         alignment: defender.alignment,
         armor_class: defender.armor_class,
         hit_points: new_hit_points,
-        vitality: defender.vitality
+        vitality: new_vitality
     }
 }
 
@@ -157,5 +162,14 @@ mod tests {
         let tordek = Character { ..Default::default() };
 
         assert!(Alive == tordek.vitality);
+    }
+
+    #[test]
+    fn test_character_dies_when_reduced_to_zero_hit_points() {
+        let tordek = Character { hit_points: 1, ..Default::default() };
+
+        let attacked_tordek = attack(10, tordek);
+
+        assert!(Dead == attacked_tordek.vitality);
     }
 }
