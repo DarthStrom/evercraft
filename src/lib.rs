@@ -18,7 +18,13 @@ struct Character {
     alignment: Alignment,
     armor_class: int,
     hit_points: int,
-    vitality: Vitality
+    vitality: Vitality,
+    strength: int,
+    dexterity: int,
+    constitution: int,
+    wisdom: int,
+    intelligence: int,
+    charisma: int
 }
 
 impl Default for Character {
@@ -28,7 +34,13 @@ impl Default for Character {
             alignment: Evil,
             armor_class: 10,
             hit_points: 5,
-            vitality: Alive
+            vitality: Alive,
+            strength: 10,
+            dexterity: 10,
+            constitution: 10,
+            wisdom: 10,
+            intelligence: 10,
+            charisma: 10
         }
     }
 }
@@ -55,7 +67,13 @@ fn attack(roll: int, defender: Character) -> Character {
         alignment: defender.alignment,
         armor_class: defender.armor_class,
         hit_points: new_hit_points,
-        vitality: new_vitality
+        vitality: new_vitality,
+        strength: defender.strength,
+        dexterity: defender.dexterity,
+        constitution: defender.constitution,
+        wisdom: defender.wisdom,
+        intelligence: defender.intelligence,
+        charisma: defender.charisma
     }
 }
 
@@ -180,5 +198,17 @@ mod tests {
         let attacked_tordek = attack(20, tordek);
 
         assert!(Dead == attacked_tordek.vitality);
+    }
+
+    #[test]
+    fn test_character_abilities_default_to_10() {
+        let krusk = Character { ..Default::default() };
+
+        assert_eq!(10, krusk.strength);
+        assert_eq!(10, krusk.dexterity);
+        assert_eq!(10, krusk.constitution);
+        assert_eq!(10, krusk.wisdom);
+        assert_eq!(10, krusk.intelligence);
+        assert_eq!(10, krusk.charisma);
     }
 }
