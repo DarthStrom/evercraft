@@ -27,8 +27,14 @@ impl Default for Character {
 
 fn attack(roll: int, defender: Character) -> Character {
     let mut new_hit_points = defender.hit_points;
+    let mut damage = 1;
+    
+    if roll == 20 {
+        damage = damage * 2;
+    }
+
     if roll >= defender.armor_class {
-        new_hit_points = new_hit_points - 1;
+        new_hit_points = new_hit_points - damage;
     }
 
     Character {
@@ -104,23 +110,36 @@ mod tests {
 
     #[test]
     fn test_character_can_attack() {
-        let vadania = Character { ..Default::default() };
         let tordek = Character { ..Default::default() };
         let original_hit_points = tordek.hit_points;
 
         let attacked_tordek = attack(10, tordek);
 
-        assert!(original_hit_points != attacked_tordek.hit_points);
+        let normal_hit = 1;
+        assert_eq!(original_hit_points - normal_hit,
+                   attacked_tordek.hit_points);
     }
 
     #[test]
-    fn test_character_can_miss() {
-        let vadania = Character { ..Default::default() };
+    fn test_attack_can_miss() {
         let tordek = Character { ..Default::default() };
         let original_hit_points = tordek.hit_points;
 
         let attacked_tordek = attack(9, tordek);
 
-        assert!(original_hit_points == attacked_tordek.hit_points);
+        assert_eq!(original_hit_points, attacked_tordek.hit_points);
+    }
+
+    #[test]
+    fn test_attack_can_crit() {
+        let tordek = Character { ..Default::default() };
+        let original_hit_points = tordek.hit_points;
+
+        let attacked_tordek = attack(20, tordek);
+
+        let normal_hit = 1;
+        let crit_multiplier = 2;
+        assert_eq!(original_hit_points - (crit_multiplier * normal_hit),
+                   attacked_tordek.hit_points);
     }
 }
