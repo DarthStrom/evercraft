@@ -49,16 +49,17 @@ fn modifier_for(score: int) -> int {
     (score / 2) - 5
 }
 
-fn attack(roll: int, defender: Character) -> Character {
+fn attack(attacker: Character, roll: int, defender: Character) -> Character {
     let mut new_hit_points = defender.hit_points;
     let mut damage = 1;
     let mut new_vitality = Alive;
+    let modified_roll = roll + modifier_for(attacker.strength);
     
     if roll == 20 {
         damage = damage * 2;
     }
 
-    if roll >= defender.armor_class {
+    if modified_roll >= defender.armor_class {
         new_hit_points = new_hit_points - damage;
     }
 
@@ -147,10 +148,11 @@ mod tests {
 
     #[test]
     fn test_character_can_attack() {
+        let regdar = Character { ..Default::default() };
         let tordek = Character { ..Default::default() };
         let original_hit_points = tordek.hit_points;
 
-        let attacked_tordek = attack(10, tordek);
+        let attacked_tordek = attack(regdar, 10, tordek);
 
         let normal_hit = 1;
         assert_eq!(original_hit_points - normal_hit,
@@ -159,20 +161,22 @@ mod tests {
 
     #[test]
     fn test_attack_can_miss() {
+        let regdar = Character { ..Default::default() };
         let tordek = Character { ..Default::default() };
         let original_hit_points = tordek.hit_points;
 
-        let attacked_tordek = attack(9, tordek);
+        let attacked_tordek = attack(regdar, 9, tordek);
 
         assert_eq!(original_hit_points, attacked_tordek.hit_points);
     }
 
     #[test]
     fn test_attack_can_crit() {
+        let regdar = Character { ..Default::default() };
         let tordek = Character { ..Default::default() };
         let original_hit_points = tordek.hit_points;
 
-        let attacked_tordek = attack(20, tordek);
+        let attacked_tordek = attack(regdar, 20, tordek);
 
         let normal_hit = 1;
         let crit_multiplier = 2;
@@ -189,18 +193,20 @@ mod tests {
 
     #[test]
     fn test_character_dies_when_reduced_to_zero_hit_points() {
+        let regdar = Character { ..Default::default() };
         let tordek = Character { hit_points: 1, ..Default::default() };
 
-        let attacked_tordek = attack(10, tordek);
+        let attacked_tordek = attack(regdar, 10, tordek);
 
         assert!(Dead == attacked_tordek.vitality);
     }
 
     #[test]
     fn test_character_dies_when_reduced_below_zero_hit_points() {
+        let regdar = Character { ..Default::default() };
         let tordek = Character { hit_points: 1, ..Default::default() };
 
-        let attacked_tordek = attack(20, tordek);
+        let attacked_tordek = attack(regdar, 20, tordek);
 
         assert!(Dead == attacked_tordek.vitality);
     }
@@ -231,5 +237,15 @@ mod tests {
         assert_eq!(4, modifier_for(18));
         assert_eq!(4, modifier_for(19));
         assert_eq!(5, modifier_for(20));
+    }
+
+    #[test]
+    fn test_strength_modifier_is_added_to_roll() {
+        let krusk = Character { strength: 12, ..Default::default() };
+        let tordek = Character { ..Default::default() };
+        let expected_hit_points = tordek.hit_points - 1;
+        let attacked_tordek = attack(krusk, 9, tordek);
+
+        assert_eq!(expected_hit_points, attacked_tordek.hit_points);
     }
 }
