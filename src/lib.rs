@@ -53,14 +53,16 @@ fn attack(attacker: Character, roll: int, defender: Character) -> Character {
     let mut new_hit_points = defender.hit_points;
     let mut damage = 1;
     let mut new_vitality = Alive;
-    let modified_roll = roll + modifier_for(attacker.strength);
+    let strength_modifier = modifier_for(attacker.strength);
+    let modified_roll = roll + strength_modifier;
     
     if roll == 20 {
         damage = damage * 2;
     }
-
+    let modified_damage = damage + strength_modifier;
+    
     if modified_roll >= defender.armor_class {
-        new_hit_points = new_hit_points - damage;
+        new_hit_points = new_hit_points - modified_damage;
     }
 
     if new_hit_points <= 0 {
@@ -240,10 +242,12 @@ mod tests {
     }
 
     #[test]
-    fn test_strength_modifier_is_added_to_roll() {
+    fn test_strength_modifier_is_added_to_roll_and_damage() {
+        let normal_damage = 1;
         let krusk = Character { strength: 12, ..Default::default() };
+        let strength_modifier = modifier_for(krusk.strength);
         let tordek = Character { ..Default::default() };
-        let expected_hit_points = tordek.hit_points - 1;
+        let expected_hit_points = tordek.hit_points - normal_damage - strength_modifier;;
         let attacked_tordek = attack(krusk, 9, tordek);
 
         assert_eq!(expected_hit_points, attacked_tordek.hit_points);
