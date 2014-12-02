@@ -49,25 +49,39 @@ fn modifier_for(score: int) -> int {
     (score / 2) - 5
 }
 
+fn is_crit(roll: int) -> bool {
+    roll == 20
+}
+
+fn get_vitality(hit_points: int) -> Vitality {
+    if hit_points <= 0 {
+        Dead
+    }
+    else {
+        Alive
+    }
+}
+
 fn attack(attacker: Character, roll: int, defender: Character) -> Character {
     let mut new_hit_points = defender.hit_points;
     let mut damage = 1;
-    let mut new_vitality = Alive;
     let strength_modifier = modifier_for(attacker.strength);
     let modified_roll = roll + strength_modifier;
-    
-    if roll == 20 {
+    let mut modified_damage = 0;
+
+    if is_crit(roll) {
         damage = damage * 2;
+        modified_damage = damage + (2 * strength_modifier);
     }
-    let modified_damage = damage + strength_modifier;
-    
+    else {
+        modified_damage = damage + strength_modifier;
+    }
+
     if modified_roll >= defender.armor_class {
         new_hit_points = new_hit_points - modified_damage;
     }
 
-    if new_hit_points <= 0 {
-        new_vitality = Dead;
-    }
+    let new_vitality = get_vitality(new_hit_points);
 
     Character {
         name: defender.name,
@@ -247,8 +261,23 @@ mod tests {
         let krusk = Character { strength: 12, ..Default::default() };
         let strength_modifier = modifier_for(krusk.strength);
         let tordek = Character { ..Default::default() };
-        let expected_hit_points = tordek.hit_points - normal_damage - strength_modifier;;
+        let expected_hit_points = tordek.hit_points - normal_damage - strength_modifier;
         let attacked_tordek = attack(krusk, 9, tordek);
+
+        assert_eq!(expected_hit_points, attacked_tordek.hit_points);
+    }
+
+    #[test]
+    fn test_double_strength_modifier_is_added_to_crit_damage() {
+        let normal_damage = 1;
+        let crit_multiplier = 2;
+        let krusk = Character { strength: 12, ..Default::default() };
+        let strength_modifier = modifier_for(krusk.strength);
+        let tordek = Character { ..Default::default() };
+        let expected_hit_points = tordek.hit_points - (normal_damage * crit_multiplier) - (2 *
+                                                                                           strength_modifier);
+
+        let attacked_tordek = attack(krusk, 20, tordek);
 
         assert_eq!(expected_hit_points, attacked_tordek.hit_points);
     }
