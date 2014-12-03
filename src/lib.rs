@@ -49,38 +49,49 @@ fn modifier_for(score: int) -> int {
     (score / 2) - 5
 }
 
-fn is_crit(roll: int) -> bool {
-    roll == 20
+fn get_crit_multiplier(roll: int) -> int {
+    if roll == 20 {
+        2
+    } else {
+        1
+    }
 }
 
 fn get_vitality(hit_points: int) -> Vitality {
     if hit_points <= 0 {
         Dead
-    }
-    else {
+    } else {
         Alive
     }
 }
 
-fn attack(attacker: Character, roll: int, defender: Character) -> Character {
-    let mut new_hit_points = defender.hit_points;
-    let mut damage = 1;
-    let strength_modifier = modifier_for(attacker.strength);
-    let modified_roll = roll + strength_modifier;
+fn get_new_hit_points(hit_points: int, roll: int, armor_class: int, damage: int) -> int {
+    if roll >= armor_class {
+        hit_points - damage
+    } else {
+        hit_points
+    }
+}
+
+fn get_modified_damage(roll: int, modifier: int) -> int {
+    let normal_damage = 1;
+    let crit_multiplier = get_crit_multiplier(roll);
     let mut modified_damage = 0;
 
-    if is_crit(roll) {
-        damage = damage * 2;
-        modified_damage = damage + (2 * strength_modifier);
-    }
-    else {
-        modified_damage = damage + strength_modifier;
-    }
+    modified_damage = crit_multiplier * (normal_damage + modifier);
 
-    if modified_roll >= defender.armor_class {
-        new_hit_points = new_hit_points - modified_damage;
+    if modified_damage < 1 {
+        1
+    } else {
+        modified_damage
     }
+}
 
+fn attack(attacker: Character, roll: int, defender: Character) -> Character {
+    let strength_modifier = modifier_for(attacker.strength);
+    let modified_roll = roll + strength_modifier;
+    let modified_damage = get_modified_damage(roll, strength_modifier);
+    let new_hit_points = get_new_hit_points(defender.hit_points, modified_roll, defender.armor_class, modified_damage);
     let new_vitality = get_vitality(new_hit_points);
 
     Character {
@@ -278,6 +289,18 @@ mod tests {
                                                                                            strength_modifier);
 
         let attacked_tordek = attack(krusk, 20, tordek);
+
+        assert_eq!(expected_hit_points, attacked_tordek.hit_points);
+    }
+
+    #[test]
+    fn test_minimum_damage_is_1() {
+        let normal_damage = 1;
+        let krusk = Character { strength: 9, ..Default::default() };
+        let tordek = Character { ..Default::default() };
+        let expected_hit_points = tordek.hit_points - normal_damage;
+
+        let attacked_tordek = attack(krusk, 11, tordek);
 
         assert_eq!(expected_hit_points, attacked_tordek.hit_points);
     }
