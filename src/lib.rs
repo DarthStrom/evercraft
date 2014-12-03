@@ -57,19 +57,19 @@ fn get_crit_multiplier(roll: int) -> int {
     }
 }
 
-fn get_vitality(hit_points: int, modifier: int) -> Vitality {
-    if hit_points + modifier <= 0 {
+fn get_vitality(hit_points: int) -> Vitality {
+    if hit_points <= 0 {
         Dead
     } else {
         Alive
     }
 }
 
-fn get_new_hit_points(hit_points: int, roll: int, armor_class: int, damage: int) -> int {
+fn get_hit_point_reduction(roll: int, armor_class: int, damage: int) -> int {
     if roll >= armor_class {
-        hit_points - damage
+        damage
     } else {
-        hit_points
+        0
     }
 }
 
@@ -87,6 +87,16 @@ fn get_modified_damage(roll: int, modifier: int) -> int {
     }
 }
 
+fn get_modified_hit_points(hit_points: int, modifier: int) -> int {
+    let modified_hit_points = hit_points + modifier;
+
+    if modified_hit_points >= 1 {
+        modified_hit_points
+    } else {
+        1
+    }
+}
+
 fn attack(attacker: Character, roll: int, defender: Character) -> Character {
     let strength_modifier = modifier_for(attacker.strength);
     let dexterity_modifier = modifier_for(defender.dexterity);
@@ -94,8 +104,11 @@ fn attack(attacker: Character, roll: int, defender: Character) -> Character {
     let modified_roll = roll + strength_modifier;
     let modified_damage = get_modified_damage(roll, strength_modifier);
     let modified_armor_class = defender.armor_class + dexterity_modifier;
-    let new_hit_points = get_new_hit_points(defender.hit_points, modified_roll, modified_armor_class, modified_damage);
-    let new_vitality = get_vitality(new_hit_points, constitution_modifier);
+    let modified_hit_points = get_modified_hit_points(defender.hit_points, constitution_modifier);
+    let hit_point_reduction = get_hit_point_reduction(modified_roll, modified_armor_class,
+                                                      modified_damage);
+    let new_hit_points = defender.hit_points - hit_point_reduction;
+    let new_vitality = get_vitality(modified_hit_points - hit_point_reduction);
 
     Character {
         name: defender.name,
@@ -325,6 +338,16 @@ mod tests {
         let tordek = Character { hit_points: 1, constitution: 12, ..Default::default() };
 
         let attacked_tordek = attack(krusk, 10, tordek);
+
+        assert!(Alive == attacked_tordek.vitality);
+    }
+
+    #[test]
+    fn test_constitution_modifier_does_not_lower_hit_points_below_1() {
+        let krusk = Character { ..Default::default() };
+        let tordek = Character { hit_points: 1, constitution: 9, ..Default::default() };
+        
+        let attacked_tordek = attack(krusk, 9, tordek);
 
         assert!(Alive == attacked_tordek.vitality);
     }
