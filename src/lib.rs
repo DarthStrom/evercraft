@@ -57,8 +57,8 @@ fn get_crit_multiplier(roll: int) -> int {
     }
 }
 
-fn get_vitality(hit_points: int) -> Vitality {
-    if hit_points <= 0 {
+fn get_vitality(hit_points: int, modifier: int) -> Vitality {
+    if hit_points + modifier <= 0 {
         Dead
     } else {
         Alive
@@ -90,11 +90,12 @@ fn get_modified_damage(roll: int, modifier: int) -> int {
 fn attack(attacker: Character, roll: int, defender: Character) -> Character {
     let strength_modifier = modifier_for(attacker.strength);
     let dexterity_modifier = modifier_for(defender.dexterity);
+    let constitution_modifier = modifier_for(defender.constitution);
     let modified_roll = roll + strength_modifier;
     let modified_damage = get_modified_damage(roll, strength_modifier);
     let modified_armor_class = defender.armor_class + dexterity_modifier;
     let new_hit_points = get_new_hit_points(defender.hit_points, modified_roll, modified_armor_class, modified_damage);
-    let new_vitality = get_vitality(new_hit_points);
+    let new_vitality = get_vitality(new_hit_points, constitution_modifier);
 
     Character {
         name: defender.name,
@@ -316,5 +317,15 @@ mod tests {
         let attacked_tordek = attack(krusk, 10, tordek);
 
         assert_eq!(expected_hit_points, attacked_tordek.hit_points);
+    }
+
+    #[test]
+    fn test_constitution_modifier_is_added_to_hit_points() {
+        let krusk = Character { ..Default::default() };
+        let tordek = Character { hit_points: 1, constitution: 12, ..Default::default() };
+
+        let attacked_tordek = attack(krusk, 10, tordek);
+
+        assert!(Alive == attacked_tordek.vitality);
     }
 }
