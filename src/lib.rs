@@ -89,9 +89,11 @@ fn get_modified_damage(roll: int, modifier: int) -> int {
 
 fn attack(attacker: Character, roll: int, defender: Character) -> Character {
     let strength_modifier = modifier_for(attacker.strength);
+    let dexterity_modifier = modifier_for(defender.dexterity);
     let modified_roll = roll + strength_modifier;
     let modified_damage = get_modified_damage(roll, strength_modifier);
-    let new_hit_points = get_new_hit_points(defender.hit_points, modified_roll, defender.armor_class, modified_damage);
+    let modified_armor_class = defender.armor_class + dexterity_modifier;
+    let new_hit_points = get_new_hit_points(defender.hit_points, modified_roll, modified_armor_class, modified_damage);
     let new_vitality = get_vitality(new_hit_points);
 
     Character {
@@ -301,6 +303,17 @@ mod tests {
         let expected_hit_points = tordek.hit_points - normal_damage;
 
         let attacked_tordek = attack(krusk, 11, tordek);
+
+        assert_eq!(expected_hit_points, attacked_tordek.hit_points);
+    }
+
+    #[test]
+    fn test_dexterity_modifier_is_added_to_armor_class() {
+        let krusk = Character { ..Default::default() };
+        let tordek = Character { dexterity: 12, ..Default::default() };
+        let expected_hit_points = tordek.hit_points;
+        
+        let attacked_tordek = attack(krusk, 10, tordek);
 
         assert_eq!(expected_hit_points, attacked_tordek.hit_points);
     }
