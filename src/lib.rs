@@ -24,7 +24,13 @@ struct Character {
     constitution: int,
     wisdom: int,
     intelligence: int,
-    charisma: int
+    charisma: int,
+    experience: int
+}
+
+struct Combatants {
+    attacker: Character,
+    defender: Character
 }
 
 impl Default for Character {
@@ -40,7 +46,8 @@ impl Default for Character {
             constitution: 10,
             wisdom: 10,
             intelligence: 10,
-            charisma: 10
+            charisma: 10,
+            experience: 0
         }
     }
 }
@@ -97,7 +104,9 @@ fn get_modified_hit_points(hit_points: int, modifier: int) -> int {
     }
 }
 
-fn attack(attacker: Character, roll: int, defender: Character) -> Character {
+fn attack(combatants: Combatants, roll: int) -> Combatants {
+    let attacker = combatants.attacker;
+    let defender = combatants.defender;
     let strength_modifier = modifier_for(attacker.strength);
     let dexterity_modifier = modifier_for(defender.dexterity);
     let constitution_modifier = modifier_for(defender.constitution);
@@ -110,25 +119,43 @@ fn attack(attacker: Character, roll: int, defender: Character) -> Character {
     let new_hit_points = defender.hit_points - hit_point_reduction;
     let new_vitality = get_vitality(modified_hit_points - hit_point_reduction);
 
-    Character {
-        name: defender.name,
-        alignment: defender.alignment,
-        armor_class: defender.armor_class,
-        hit_points: new_hit_points,
-        vitality: new_vitality,
-        strength: defender.strength,
-        dexterity: defender.dexterity,
-        constitution: defender.constitution,
-        wisdom: defender.wisdom,
-        intelligence: defender.intelligence,
-        charisma: defender.charisma
+    Combatants {
+        attacker: Character {
+            name: attacker.name,
+            alignment: attacker.alignment,
+            armor_class: attacker.armor_class,
+            hit_points: attacker.hit_points,
+            vitality: attacker.vitality,
+            strength: attacker.strength,
+            dexterity: attacker.dexterity,
+            constitution: attacker.constitution,
+            wisdom: attacker.wisdom,
+            intelligence: attacker.intelligence,
+            charisma: attacker.charisma,
+            experience: attacker.experience + 10
+        },
+
+        defender: Character {
+            name: defender.name,
+            alignment: defender.alignment,
+            armor_class: defender.armor_class,
+            hit_points: new_hit_points,
+            vitality: new_vitality,
+            strength: defender.strength,
+            dexterity: defender.dexterity,
+            constitution: defender.constitution,
+            wisdom: defender.wisdom,
+            intelligence: defender.intelligence,
+            charisma: defender.charisma,
+            experience: defender.experience
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use std::default::Default;
-    use super::{Good, Neutral, Evil, Alive, Dead, Character,
+    use super::{Good, Neutral, Evil, Alive, Dead, Character, Combatants,
                 modifier_for, attack};
 
     #[test]
@@ -194,12 +221,13 @@ mod tests {
         let regdar = Character { ..Default::default() };
         let tordek = Character { ..Default::default() };
         let original_hit_points = tordek.hit_points;
+        let combatants = Combatants { attacker: regdar, defender: tordek };
 
-        let attacked_tordek = attack(regdar, 10, tordek);
+        let new_combatants = attack(combatants, 10);
 
         let normal_hit = 1;
         assert_eq!(original_hit_points - normal_hit,
-                   attacked_tordek.hit_points);
+                   new_combatants.defender.hit_points);
     }
 
     #[test]
@@ -207,10 +235,11 @@ mod tests {
         let regdar = Character { ..Default::default() };
         let tordek = Character { ..Default::default() };
         let original_hit_points = tordek.hit_points;
+        let combatants = Combatants { attacker: regdar, defender: tordek };
 
-        let attacked_tordek = attack(regdar, 9, tordek);
+        let new_combatants = attack(combatants, 9);
 
-        assert_eq!(original_hit_points, attacked_tordek.hit_points);
+        assert_eq!(original_hit_points, new_combatants.defender.hit_points);
     }
 
     #[test]
@@ -218,13 +247,14 @@ mod tests {
         let regdar = Character { ..Default::default() };
         let tordek = Character { ..Default::default() };
         let original_hit_points = tordek.hit_points;
+        let combatants = Combatants { attacker: regdar, defender: tordek };
 
-        let attacked_tordek = attack(regdar, 20, tordek);
+        let new_combatants = attack(combatants, 20);
 
         let normal_hit = 1;
         let crit_multiplier = 2;
         assert_eq!(original_hit_points - (crit_multiplier * normal_hit),
-                   attacked_tordek.hit_points);
+            new_combatants.defender.hit_points);
     }
 
     #[test]
@@ -238,20 +268,22 @@ mod tests {
     fn test_character_dies_when_reduced_to_zero_hit_points() {
         let regdar = Character { ..Default::default() };
         let tordek = Character { hit_points: 1, ..Default::default() };
+        let combatants = Combatants { attacker: regdar, defender: tordek };
 
-        let attacked_tordek = attack(regdar, 10, tordek);
+        let new_combatants = attack(combatants, 10);
 
-        assert!(Dead == attacked_tordek.vitality);
+        assert!(Dead == new_combatants.defender.vitality);
     }
 
     #[test]
     fn test_character_dies_when_reduced_below_zero_hit_points() {
         let regdar = Character { ..Default::default() };
         let tordek = Character { hit_points: 1, ..Default::default() };
+        let combatants = Combatants { attacker: regdar, defender: tordek };
 
-        let attacked_tordek = attack(regdar, 20, tordek);
+        let new_combatants = attack(combatants, 20);
 
-        assert!(Dead == attacked_tordek.vitality);
+        assert!(Dead == new_combatants.defender.vitality);
     }
 
     #[test]
@@ -289,9 +321,11 @@ mod tests {
         let strength_modifier = modifier_for(krusk.strength);
         let tordek = Character { ..Default::default() };
         let expected_hit_points = tordek.hit_points - normal_damage - strength_modifier;
-        let attacked_tordek = attack(krusk, 9, tordek);
+        let combatants = Combatants { attacker: krusk, defender: tordek };
 
-        assert_eq!(expected_hit_points, attacked_tordek.hit_points);
+        let new_combatants = attack(combatants, 9);
+
+        assert_eq!(expected_hit_points, new_combatants.defender.hit_points);
     }
 
     #[test]
@@ -303,10 +337,11 @@ mod tests {
         let tordek = Character { ..Default::default() };
         let expected_hit_points = tordek.hit_points - (normal_damage * crit_multiplier) - (2 *
                                                                                            strength_modifier);
+        let combatants = Combatants { attacker: krusk, defender: tordek };
 
-        let attacked_tordek = attack(krusk, 20, tordek);
+        let new_combatants = attack(combatants, 20);
 
-        assert_eq!(expected_hit_points, attacked_tordek.hit_points);
+        assert_eq!(expected_hit_points, new_combatants.defender.hit_points);
     }
 
     #[test]
@@ -315,10 +350,11 @@ mod tests {
         let krusk = Character { strength: 9, ..Default::default() };
         let tordek = Character { ..Default::default() };
         let expected_hit_points = tordek.hit_points - normal_damage;
+        let combatants = Combatants { attacker: krusk, defender: tordek };
 
-        let attacked_tordek = attack(krusk, 11, tordek);
+        let new_combatants = attack(combatants, 11);
 
-        assert_eq!(expected_hit_points, attacked_tordek.hit_points);
+        assert_eq!(expected_hit_points, new_combatants.defender.hit_points);
     }
 
     #[test]
@@ -326,29 +362,43 @@ mod tests {
         let krusk = Character { ..Default::default() };
         let tordek = Character { dexterity: 12, ..Default::default() };
         let expected_hit_points = tordek.hit_points;
-        
-        let attacked_tordek = attack(krusk, 10, tordek);
+        let combatants = Combatants { attacker: krusk, defender: tordek };
 
-        assert_eq!(expected_hit_points, attacked_tordek.hit_points);
+        let new_combatants = attack(combatants, 10);
+
+        assert_eq!(expected_hit_points, new_combatants.defender.hit_points);
     }
 
     #[test]
     fn test_constitution_modifier_is_added_to_hit_points() {
         let krusk = Character { ..Default::default() };
         let tordek = Character { hit_points: 1, constitution: 12, ..Default::default() };
+        let combatants = Combatants { attacker: krusk, defender: tordek };
 
-        let attacked_tordek = attack(krusk, 10, tordek);
+        let new_combatants = attack(combatants, 10);
 
-        assert!(Alive == attacked_tordek.vitality);
+        assert!(Alive == new_combatants.defender.vitality);
     }
 
     #[test]
     fn test_constitution_modifier_does_not_lower_hit_points_below_1() {
         let krusk = Character { ..Default::default() };
         let tordek = Character { hit_points: 1, constitution: 9, ..Default::default() };
-        
-        let attacked_tordek = attack(krusk, 9, tordek);
+        let combatants = Combatants { attacker: krusk, defender: tordek };
 
-        assert!(Alive == attacked_tordek.vitality);
+        let new_combatants = attack(combatants, 9);
+
+        assert!(Alive == new_combatants.defender.vitality);
+    }
+
+    #[test]
+    fn test_attacking_gives_experience() {
+        let krusk = Character { ..Default::default() };
+        let tordek = Character { ..Default::default() };
+        let combatants = Combatants { attacker: krusk, defender: tordek };
+
+        let new_combatants = attack(combatants, 10);
+
+        assert_eq!(10, new_combatants.attacker.experience);
     }
 }
